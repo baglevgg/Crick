@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crick Cracker - Admin Dashboard</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        .container {
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #333;
+        }
+        #uploadModal {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            width: 400px;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <button onclick="document.getElementById('uploadModal').style.display='flex'">Upload New Content</button>
+        <button onclick="window.location.href='/logout'">Logout</button>
+
+        <h2>Uploaded Posts</h2>
+        <table id="postsTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Content</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Posts will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('uploadModal').style.display='none'">&times;</span>
+            <h2>Upload Content</h2>
+            <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+                <select name="postType" required>
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                </select><br>
+                <input type="text" name="textContent" placeholder="Text content" /><br>
+                <input type="file" name="file" /><br>
+                <button type="submit">Upload</button>
+            </form>
+            <button onclick="document.getElementById('uploadModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch and display posts
+        async function fetchPosts() {
+            const response = await fetch('/posts');
+            const posts = await response.json();
+            const tableBody = document.querySelector('#postsTable tbody');
+            tableBody.innerHTML = ''; // Clear existing entries
+            posts.forEach(post => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${post.type}</td>
+                    <td>${post.type === 'video' ? `<video controls src="${post.content}"></video>` : post.content}</td>
+                    <td>
+                        <button onclick="deletePost(${post.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to delete a post
+        async function deletePost(postId) {
+            await fetch(`/admin/delete/${postId}`, { method: 'DELETE' });
+            fetchPosts(); // Refresh the list after deleting
+        }
+
+        // Fetch posts on load
+        window.onload = fetchPosts;
+    </script>
+     <script src="server.js"></script>
+</body>
+</html>
